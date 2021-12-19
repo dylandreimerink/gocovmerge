@@ -1,13 +1,9 @@
-// gocovmerge takes the results from multiple `go test -coverprofile` runs and
-// merges them into one profile
-package main
+package gocovmerge
 
 import (
-	"flag"
 	"fmt"
 	"io"
 	"log"
-	"os"
 	"sort"
 
 	"golang.org/x/tools/cover"
@@ -68,7 +64,7 @@ func mergeProfileBlock(p *cover.Profile, pb cover.ProfileBlock, startIndex int) 
 	return i + 1
 }
 
-func addProfile(profiles []*cover.Profile, p *cover.Profile) []*cover.Profile {
+func AddProfile(profiles []*cover.Profile, p *cover.Profile) []*cover.Profile {
 	i := sort.Search(len(profiles), func(i int) bool { return profiles[i].FileName >= p.FileName })
 	if i < len(profiles) && profiles[i].FileName == p.FileName {
 		mergeProfiles(profiles[i], p)
@@ -80,7 +76,7 @@ func addProfile(profiles []*cover.Profile, p *cover.Profile) []*cover.Profile {
 	return profiles
 }
 
-func dumpProfiles(profiles []*cover.Profile, out io.Writer) {
+func DumpProfiles(profiles []*cover.Profile, out io.Writer) {
 	if len(profiles) == 0 {
 		return
 	}
@@ -90,22 +86,4 @@ func dumpProfiles(profiles []*cover.Profile, out io.Writer) {
 			fmt.Fprintf(out, "%s:%d.%d,%d.%d %d %d\n", p.FileName, b.StartLine, b.StartCol, b.EndLine, b.EndCol, b.NumStmt, b.Count)
 		}
 	}
-}
-
-func main() {
-	flag.Parse()
-
-	var merged []*cover.Profile
-
-	for _, file := range flag.Args() {
-		profiles, err := cover.ParseProfiles(file)
-		if err != nil {
-			log.Fatalf("failed to parse profiles: %v", err)
-		}
-		for _, p := range profiles {
-			merged = addProfile(merged, p)
-		}
-	}
-
-	dumpProfiles(merged, os.Stdout)
 }
