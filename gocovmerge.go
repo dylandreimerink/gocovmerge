@@ -23,7 +23,12 @@ func mergeProfiles(p *cover.Profile, merge *cover.Profile) {
 
 func mergeProfileBlock(p *cover.Profile, pb cover.ProfileBlock, startIndex int) int {
 	sortFunc := func(i int) bool {
-		pi := p.Blocks[i+startIndex]
+		var pi cover.ProfileBlock
+		if i+startIndex < len(p.Blocks) {
+			pi = p.Blocks[i+startIndex]
+		} else {
+			pi = p.Blocks[len(p.Blocks)-1]
+		}
 		return pi.StartLine >= pb.StartLine && (pi.StartLine != pb.StartLine || pi.StartCol >= pb.StartCol)
 	}
 
